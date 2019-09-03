@@ -1,8 +1,24 @@
 import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import Login from './Login';
+import Notfound from './Notfound';
+import Room from './Room'
+import socketIOClient from "socket.io-client"
+
+
+const socket = socketIOClient();
 
 function App() {
   return (
-    <div>React is connected</div>
+    <Router>
+      <div>
+        <Switch>
+          <Route path="/" exact component={({history}) => <Login socket={socket} history={history}/>} />
+          <Route path="/rooms/:id" component={Room}/>
+          <Route component={Notfound} />
+        </Switch>
+      </div>
+    </Router>
   );
 }
 
