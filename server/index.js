@@ -20,7 +20,10 @@ http.listen(3000, function(){
 
 io.on('connection', function(socket){
   const {
-    handleLogin
+    handleLogin,
+    handleJoiningChatroom
   } = createHandlers(socket, clientManager, chatroomManager)
   socket.on('login', handleLogin)
+  socket.on('joinChatroom', handleJoiningChatroom)
+  socket.on('disconnect', () => console.log('disconnected'))
 });

@@ -11,8 +11,13 @@ module.exports = function(id) {
     return identifier;
   }
 
+  function getUsers() {
+    return members.values();
+  }
+
   return {
     addUser,
-    getId
+    getId,
+    getUsers
   }
 }

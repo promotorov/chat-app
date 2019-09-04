@@ -14,7 +14,7 @@ function App() {
       <div>
         <Switch>
           <Route path="/" exact component={({history}) => <Login socket={socket} history={history}/>} />
-          <Route path="/rooms/:id" component={Room}/>
+          <Route path="/rooms/:id" component={({match}) => <Room socket={socket} id={match.params.id}/>} />
           <Route component={Notfound} />
         </Switch>
       </div>

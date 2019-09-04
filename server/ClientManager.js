@@ -9,8 +9,18 @@ module.exports = function() {
     return ![...clients.values()].map(x => x.userName).some(name => name === userName);
   }
 
+  function isClientRegistered(client) {
+    return clients.has(client.id)
+  }
+
+  function getClientInfo(client) {
+    return clients.get(client.id)
+  }
+
   return {
     registerClient,
-    isUsernameAvailable
+    isUsernameAvailable,
+    isClientRegistered,
+    getClientInfo
   }
 }
