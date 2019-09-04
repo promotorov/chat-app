@@ -5,6 +5,7 @@ const path = require('path');
 const io = require('socket.io')(http);
 const createHandlers = require('./handlers');
 const clientManager = require('./ClientManager')()
+const chatroomManager = require('./ChatroomManager')();
 
 app.use(express.static(__dirname));
 app.use(express.static(path.join(__dirname, '../build')));
@@ -20,6 +21,6 @@ http.listen(3000, function(){
 io.on('connection', function(socket){
   const {
     handleLogin
-  } = createHandlers(socket, clientManager, null)
+  } = createHandlers(socket, clientManager, chatroomManager)
   socket.on('login', handleLogin)
 });
