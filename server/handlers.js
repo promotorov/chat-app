@@ -1,12 +1,13 @@
 module.exports = function (client, clientManager, chatroomManager) {
-  function handleLogin(userName, callback) {
+  function handleLogin({userName, shouldCreateRoom, roomId}, callback) {
     if(!clientManager.isUsernameAvailable(userName))
       return callback('Username is already taken')
     clientManager.registerClient(client, userName)
-    const id = chatroomManager.createChatroom();
-    const createdChatroom = chatroomManager.getChatroomById(id);
-    createdChatroom.addUser(client.id, {userName})
-    callback(null, id);
+    if (shouldCreateRoom) {
+      const id = chatroomManager.createChatroom();
+      callback(null, id);
+    }
+    else callback(null, roomId)
   }
 
   function handleJoiningChatroom(id, callback) {
