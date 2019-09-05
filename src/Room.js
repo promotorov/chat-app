@@ -1,6 +1,17 @@
 import React, { useState, useEffect }from 'react'
 import { Link } from 'react-router-dom'
-import { roomBefroreLogin } from './common'
+import { roomBeforeLogin } from './common'
+import { Input } from 'reactstrap'
+
+function sendMessage(event, socket, roomId) {
+  if (event.charCode === 13) {
+    const message = event.target.value;
+    if (message.trim().length === 0)
+      return;
+    socket.emit('message', {message, roomId})
+    event.target.value = ""
+  }
+}
 
 function Room({id, socket}) {
   const [isLoading, setLoading] = useState(true);
@@ -11,6 +22,11 @@ function Room({id, socket}) {
       setLoading(false);
       if(error)
         setError(error)
+      else {
+        socket.on('message', function (data) {
+          console.log('received: ' + data.message + ' ' + 'from: ' + data.senderName + 'date: ' + data.date)
+        })
+      }
     })
   }, [])
   return (
@@ -20,11 +36,14 @@ function Room({id, socket}) {
         {error.message}
         {error.code === 0 && <div>
           <Link to="/" onClick={function () {
-            roomBefroreLogin.id = id;
+            roomBeforeLogin.id = id;
           }}>Login</Link>
         </div>}
       </div>}
-      {!isLoading && !error && <div> You joined the room with id {id}</div>}
+      {!isLoading && !error && <div>
+        You joined the room with id {id}
+        <Input placeholder="message" onKeyPress={(event) => sendMessage(event, socket, id)}/>
+      </div>}
     </div>
   )
 }

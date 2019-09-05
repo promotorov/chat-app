@@ -3,8 +3,8 @@ module.exports = function(id) {
   const members = new Map();
   let chatHistory = [];
 
-  function addUser(client, data) {
-    members.set(client.id, data)
+  function addUser(client) {
+    members.set(client.id, client)
   }
 
   function getId() {
@@ -12,12 +12,22 @@ module.exports = function(id) {
   }
 
   function getUsers() {
-    return members.values();
+    return [...members.values()];
+  }
+
+  function addMessaage(client, message) {
+    chatHistory.push({client, message})
+  }
+
+  function broadcastMessage(message, senderName) {
+    members.forEach(m => m.emit('message', {message, senderName, date: new Date()}))
   }
 
   return {
     addUser,
     getId,
-    getUsers
+    getUsers,
+    addMessaage,
+    broadcastMessage
   }
 }

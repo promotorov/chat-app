@@ -1,5 +1,5 @@
-let roomBefroreLogin = {
+let roomBeforeLogin = {
   id: undefined
 }
 
-export { roomBefroreLogin };
+export { roomBeforeLogin };

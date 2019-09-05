@@ -16,12 +16,21 @@ module.exports = function (client, clientManager, chatroomManager) {
     let chatroom = chatroomManager.getChatroomById(Number(id));
     if(!chatroom)
       return callback({message: 'There is no room with that ID', code: 1})
-    chatroom.addUser(client.id, clientManager.getClientInfo(client))
+    chatroom.addUser(client)
     callback(null, 'Some data')
+  }
+
+  function handleReceivedMessage(data) {
+    const {message, roomId} = data;
+    let chatroom = chatroomManager.getChatroomById(Number(roomId))
+    chatroom.addMessaage(client, message)
+    const { userName } = clientManager.getClientInfo(client)
+    chatroom.broadcastMessage(message, userName)
   }
 
   return {
     handleLogin,
-    handleJoiningChatroom
+    handleJoiningChatroom,
+    handleReceivedMessage
   }
 }

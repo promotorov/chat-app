@@ -21,9 +21,11 @@ http.listen(3000, function(){
 io.on('connection', function(socket){
   const {
     handleLogin,
-    handleJoiningChatroom
+    handleJoiningChatroom,
+    handleReceivedMessage
   } = createHandlers(socket, clientManager, chatroomManager)
   socket.on('login', handleLogin)
   socket.on('joinChatroom', handleJoiningChatroom)
+  socket.on('message', handleReceivedMessage)
   socket.on('disconnect', () => console.log('disconnected'))
 });

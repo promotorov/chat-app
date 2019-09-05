@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Input } from 'reactstrap';
-import { roomBefroreLogin } from './common'
+import { roomBeforeLogin } from './common'
 
 function handleKeyPress(event, socket, setLoading, setError, history) {
   if (event.charCode === 13) {
@@ -8,11 +8,11 @@ function handleKeyPress(event, socket, setLoading, setError, history) {
       return;
     setLoading(true);
     setError(null);
-    const shouldCreateRoom = !roomBefroreLogin.id
+    const shouldCreateRoom = !roomBeforeLogin.id
     const transferData = {
       userName: event.target.value,
       shouldCreateRoom,
-      roomId: roomBefroreLogin.id
+      roomId: roomBeforeLogin.id
     }
     socket.emit('login', transferData, function (error, data) {
       setLoading(false);
