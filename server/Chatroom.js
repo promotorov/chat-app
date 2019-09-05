@@ -19,8 +19,15 @@ module.exports = function(id) {
     chatHistory.push({client, message})
   }
 
-  function broadcastMessage(message, senderName) {
-    members.forEach(m => m.emit('message', {message, senderName, date: new Date()}))
+  function broadcastMessage(eventType, message, senderName) {
+    members.forEach(m => m.emit(eventType, {message, senderName, date: new Date()}))
+  }
+
+  function broadcastMessageExceptOwner(owner, eventType, message, senderName) {
+    members.forEach(m => {
+      if(m.id !== owner.id)
+        m.emit(eventType, {message, senderName, date: new Date()})
+    })
   }
 
   return {
@@ -28,6 +35,7 @@ module.exports = function(id) {
     getId,
     getUsers,
     addMessaage,
-    broadcastMessage
+    broadcastMessage,
+    broadcastMessageExceptOwner
   }
 }

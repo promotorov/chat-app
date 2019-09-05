@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { roomBeforeLogin } from './common'
 import { Input } from 'reactstrap'
 import MessagesList from './MessageList'
+import UserList from './UserList'
 
 function sendMessage(event, socket, roomId) {
   if (event.charCode === 13) {
@@ -19,23 +20,30 @@ function Room({id, socket}) {
   const [error, setError] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isReady, setReady] = useState(false);
+  const [users, setUsers] = useState([]);
 
   useEffect(function () {
     socket.emit('joinChatroom', id, function (error, data) {
       setLoading(false);
       if (error)
         setError(error)
-      else
+      else {
         setReady(true)
+        setUsers([...data])
+      }
     })
   }, [])
 
-  if (isReady)
+  if (isReady) {
     socket.on('message', function messageListener(data) {
-      console.log('handler triggered');
       socket.removeEventListener('message', messageListener)
       setMessages([...messages, data])
     })
+    socket.on('userJoined', function userJoinedListener(data) {
+      socket.removeEventListener('userJoined', userJoinedListener)
+      setUsers([...users, data.message.userName])
+    })
+  }
 
   return (
     <div>
@@ -53,6 +61,9 @@ function Room({id, socket}) {
         <Input placeholder="message" onKeyPress={(event) => sendMessage(event, socket, id)}/>
         <div style={{height: '400px'}}>
           <MessagesList data={messages} />
+        </div>
+        <div>
+          <UserList data={users}/>
         </div>
       </div> }
     </div>
