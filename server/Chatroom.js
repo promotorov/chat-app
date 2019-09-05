@@ -30,12 +30,22 @@ module.exports = function(id) {
     })
   }
 
+  function deleteUser(client) {
+    members.delete(client.id)
+  }
+
+  function hasUser(client) {
+    return members.has(client.id)
+  }
+
   return {
     addUser,
     getId,
     getUsers,
     addMessaage,
     broadcastMessage,
-    broadcastMessageExceptOwner
+    broadcastMessageExceptOwner,
+    deleteUser,
+    hasUser
   }
 }

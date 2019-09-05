@@ -40,9 +40,25 @@ module.exports = function (client, clientManager, chatroomManager) {
     chatroom.broadcastMessage('message', message, userName)
   }
 
+  function handleDisconnect() {
+    if (clientManager.isClientRegistered(client)) {
+      //notify chat room members, that user left
+      const userName = clientManager.getClientInfo(client).userName
+      const chatrooms = chatroomManager.getRooms();
+      chatrooms.forEach(room => {
+        if (room.hasUser(client))
+          room.broadcastMessageExceptOwner(client, 'userLeft', {userName})
+      })
+      //delete user
+      chatroomManager.deleteClientFromChatrooms(client)
+      clientManager.deleteUser(client)
+    }
+  }
+
   return {
     handleLogin,
     handleJoiningChatroom,
-    handleReceivedMessage
+    handleReceivedMessage,
+    handleDisconnect
   }
 }

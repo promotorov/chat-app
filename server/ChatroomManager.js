@@ -13,8 +13,18 @@ module.exports = function() {
     return chatrooms.find(x => x.getId() === id);
   }
 
+  function deleteClientFromChatrooms(client) {
+    chatrooms.forEach(room => room.deleteUser(client))
+  }
+
+  function getRooms() {
+    return chatrooms
+  }
+
   return {
     createChatroom,
-    getChatroomById
+    getChatroomById,
+    deleteClientFromChatrooms,
+    getRooms
   }
 }

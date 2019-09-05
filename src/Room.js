@@ -6,6 +6,7 @@ import MessagesList from './MessageList'
 import UserList from './UserList'
 
 function sendMessage(event, socket, roomId) {
+  //Enter
   if (event.charCode === 13) {
     const message = event.target.value;
     if (message.trim().length === 0)
@@ -22,26 +23,42 @@ function Room({id, socket}) {
   const [isReady, setReady] = useState(false);
   const [users, setUsers] = useState([]);
 
+  // Delete listeners before state is updated
+  function deleteScoketListeners() {
+    socket.removeAllListeners('message')
+    socket.removeAllListeners('userJoined')
+    socket.removeAllListeners('userLeft')
+  }
+
   useEffect(function () {
     socket.emit('joinChatroom', id, function (error, data) {
       setLoading(false);
       if (error)
         setError(error)
       else {
-        setReady(true)
         setUsers([...data])
+        setReady(true)
       }
     })
   }, [])
 
   if (isReady) {
     socket.on('message', function messageListener(data) {
-      socket.removeEventListener('message', messageListener)
+      console.log('message')
+      deleteScoketListeners()
       setMessages([...messages, data])
     })
     socket.on('userJoined', function userJoinedListener(data) {
-      socket.removeEventListener('userJoined', userJoinedListener)
+      deleteScoketListeners()
       setUsers([...users, data.message.userName])
+    })
+    socket.on('userLeft', function userLeftListener(data) {
+      console.log('hier')
+      const copiedUsers = [...users];
+      let leftUserIndex = copiedUsers.findIndex(x => x === data.message.userName)
+      copiedUsers.splice(leftUserIndex, 1);
+      deleteScoketListeners()
+      setUsers(copiedUsers)
     })
   }
 

@@ -17,10 +17,15 @@ module.exports = function() {
     return clients.get(client.id)
   }
 
+  function deleteUser(client) {
+    clients.delete(client.id)
+  }
+
   return {
     registerClient,
     isUsernameAvailable,
     isClientRegistered,
-    getClientInfo
+    getClientInfo,
+    deleteUser
   }
 }
