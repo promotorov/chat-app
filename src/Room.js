@@ -2,6 +2,7 @@ import React, { useState, useEffect }from 'react'
 import { Link } from 'react-router-dom'
 import { roomBeforeLogin } from './common'
 import { Input } from 'reactstrap'
+import MessagesList from './MessageList'
 
 function sendMessage(event, socket, roomId) {
   if (event.charCode === 13) {
@@ -16,19 +17,26 @@ function sendMessage(event, socket, roomId) {
 function Room({id, socket}) {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [isReady, setReady] = useState(false);
 
-  useEffect(() => {
+  useEffect(function () {
     socket.emit('joinChatroom', id, function (error, data) {
       setLoading(false);
-      if(error)
+      if (error)
         setError(error)
-      else {
-        socket.on('message', function (data) {
-          console.log('received: ' + data.message + ' ' + 'from: ' + data.senderName + 'date: ' + data.date)
-        })
-      }
+      else
+        setReady(true)
     })
   }, [])
+
+  if (isReady)
+    socket.on('message', function messageListener(data) {
+      console.log('handler triggered');
+      socket.removeEventListener('message', messageListener)
+      setMessages([...messages, data])
+    })
+
   return (
     <div>
       {isLoading && <div>Loading...</div>}
@@ -43,7 +51,10 @@ function Room({id, socket}) {
       {!isLoading && !error && <div>
         You joined the room with id {id}
         <Input placeholder="message" onKeyPress={(event) => sendMessage(event, socket, id)}/>
-      </div>}
+        <div style={{height: '400px'}}>
+          <MessagesList data={messages} />
+        </div>
+      </div> }
     </div>
   )
 }
