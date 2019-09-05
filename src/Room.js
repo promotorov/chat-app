@@ -44,7 +44,6 @@ function Room({id, socket}) {
 
   if (isReady) {
     socket.on('message', function messageListener(data) {
-      console.log('message')
       deleteScoketListeners()
       setMessages([...messages, data])
     })
@@ -53,7 +52,6 @@ function Room({id, socket}) {
       setUsers([...users, data.message.userName])
     })
     socket.on('userLeft', function userLeftListener(data) {
-      console.log('hier')
       const copiedUsers = [...users];
       let leftUserIndex = copiedUsers.findIndex(x => x === data.message.userName)
       copiedUsers.splice(leftUserIndex, 1);
