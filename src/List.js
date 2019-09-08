@@ -1,6 +1,6 @@
 import React from 'react'
 
-function UserList({data}) {
+function List({data}) {
   return (
     <div>
       <ul>
@@ -12,4 +12,4 @@ function UserList({data}) {
   )
 }
 
-export default UserList
+export default List

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { roomBeforeLogin } from './common'
 import { Button, Input } from 'reactstrap'
 import MessagesList from './MessageList'
-import UserList from './UserList'
+import List from './List'
 
 function sendMessage(event, socket, roomId) {
   //Enter
@@ -23,10 +23,9 @@ function Room({id, socket, peer, peerId}) {
   const [isReady, setReady] = useState(false);
   const [users, setUsers] = useState([]);
   const [streamState, setStreamState] = useState({myCalls: [], isStreaming: false});
-  //const [remoteCalls, setRemoteCalls] = useState([]);
 
   // Delete listeners before state is updated
-  function deleteScoketListeners() {
+  function deleteSocketListeners() {
     socket.removeAllListeners('message')
     socket.removeAllListeners('userJoined')
     socket.removeAllListeners('userLeft')
@@ -47,24 +46,19 @@ function Room({id, socket, peer, peerId}) {
 
   if (isReady) {
     socket.on('message', function messageListener(data) {
-      deleteScoketListeners()
+      deleteSocketListeners()
       setMessages([...messages, data])
     })
     socket.on('userJoined', function userJoinedListener(data) {
-      console.log(data.message)
-      deleteScoketListeners()
+      deleteSocketListeners()
       setUsers([...users, data.message])
     })
     socket.on('userLeft', function userLeftListener(data) {
       const copiedUsers = [...users];
-      console.log(data.message.userName)
-      console.log(copiedUsers)
       let leftUserIndex = copiedUsers.findIndex(x => x.userName === data.message.userName)
-      console.log(leftUserIndex)
       const {peerId} = copiedUsers[leftUserIndex]
       copiedUsers.splice(leftUserIndex, 1);
-      console.log(copiedUsers)
-      deleteScoketListeners()
+      deleteSocketListeners()
       setUsers(copiedUsers)
       document.getElementById(`audioHeader${peerId}`).remove()
       document.getElementById(`audio${peerId}`).remove()
@@ -85,7 +79,6 @@ function Room({id, socket, peer, peerId}) {
         container.appendChild(audioElement)
       })
       call.on('close', function() {
-        console.log('close')
         document.getElementById(`audioHeader${call.peer}`).remove()
         document.getElementById(`audio${call.peer}`).remove()
       })
@@ -94,12 +87,10 @@ function Room({id, socket, peer, peerId}) {
 
   function startAudioStreaming() {
     navigator.getUserMedia({audio: true, video:false}, stream => {
-      console.log('got access to audio device');
-
       const calls = users.map(u => u.peerId)
         .filter(id => id !== peerId)
         .map(id => peer.call(id, stream))
-      deleteScoketListeners()
+      deleteSocketListeners()
       setStreamState({myCalls: calls, isStreaming: true})
     }, (err) => {
       console.log('Failed to get local stream', err);
@@ -108,7 +99,7 @@ function Room({id, socket, peer, peerId}) {
 
   function stopVideoStreaming() {
     streamState.myCalls.forEach(call => call.close())
-    deleteScoketListeners()
+    deleteSocketListeners()
     setStreamState({myCalls: [], isStreaming: false})
   }
 
@@ -130,7 +121,7 @@ function Room({id, socket, peer, peerId}) {
           <MessagesList data={messages} />
         </div>
         <div>
-          <UserList data={users.map(u => u.userName)}/>
+          <List data={users.map(u => u.userName)}/>
         </div>
         {!streamState.isStreaming &&<Button onClick={startAudioStreaming}>Start audio</Button>}
         {streamState.isStreaming && <Button onClick={stopVideoStreaming}>Stop audio</Button>}

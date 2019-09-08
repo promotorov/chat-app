@@ -1,9 +1,9 @@
 module.exports = function (client, clientManager, chatroomManager) {
   function handleLogin({userName, shouldCreateRoom, roomId, peerId}, callback) {
+    //register user and create room if needed
     if(!clientManager.isUsernameAvailable(userName))
       return callback('Username is already taken')
     clientManager.registerClient(client, userName, peerId)
-    //console.log(JSON.stringify(clientManager.getClientInfo(client)))
     if (shouldCreateRoom) {
       const id = chatroomManager.createChatroom();
       callback(null, id);
@@ -32,6 +32,7 @@ module.exports = function (client, clientManager, chatroomManager) {
   }
 
   function handleReceivedMessage(data) {
+    //send message all chat members
     const {message, roomId} = data;
     let chatroom = chatroomManager.getChatroomById(Number(roomId))
     chatroom.addMessaage(client, message)
