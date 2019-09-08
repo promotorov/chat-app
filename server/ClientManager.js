@@ -1,8 +1,8 @@
 module.exports = function() {
   const clients = new Map();
 
-  function registerClient(client, userName) {
-    clients.set(client.id, {userName});
+  function registerClient(client, userName, peerId) {
+    clients.set(client.id, {userName, peerId});
   }
 
   function isUsernameAvailable(userName) {

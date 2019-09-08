@@ -1,8 +1,9 @@
 module.exports = function (client, clientManager, chatroomManager) {
-  function handleLogin({userName, shouldCreateRoom, roomId}, callback) {
+  function handleLogin({userName, shouldCreateRoom, roomId, peerId}, callback) {
     if(!clientManager.isUsernameAvailable(userName))
       return callback('Username is already taken')
-    clientManager.registerClient(client, userName)
+    clientManager.registerClient(client, userName, peerId)
+    //console.log(JSON.stringify(clientManager.getClientInfo(client)))
     if (shouldCreateRoom) {
       const id = chatroomManager.createChatroom();
       callback(null, id);
@@ -10,26 +11,24 @@ module.exports = function (client, clientManager, chatroomManager) {
     else callback(null, roomId)
   }
 
-  function handleJoiningChatroom(id, callback) {
+  function handleJoiningChatroom({roomId, peerId}, callback) {
     //check whether room is existing or user is registered
     if(!clientManager.isClientRegistered(client))
       return callback({message: 'You are not logged in', code: 0})
-    let chatroom = chatroomManager.getChatroomById(Number(id));
+    let chatroom = chatroomManager.getChatroomById(Number(roomId));
     if(!chatroom)
       return callback({message: 'There is no room with that ID', code: 1})
     chatroom.addUser(client)
 
     //send in response names of users that are are in the current room
     const usersInRoom = chatroom.getUsers()
-    const userNames = usersInRoom.map(u =>  {
-      const {userName} = clientManager.getClientInfo(u)
-      return userName
-    })
-    const userName = clientManager.getClientInfo(client).userName
-    callback(null, userNames)
+
+    const usersInfo = usersInRoom.map(u => clientManager.getClientInfo(u))
+    callback(null, usersInfo)
 
     //notify other users, that new user joined
-    chatroom.broadcastMessageExceptOwner(client, 'userJoined', {userName})
+    const userInfo = clientManager.getClientInfo(client)
+    chatroom.broadcastMessageExceptOwner(client, 'userJoined', userInfo)
   }
 
   function handleReceivedMessage(data) {
@@ -43,7 +42,7 @@ module.exports = function (client, clientManager, chatroomManager) {
   function handleDisconnect() {
     if (clientManager.isClientRegistered(client)) {
       //notify chat room members, that user left
-      const userName = clientManager.getClientInfo(client).userName
+      const {userName} = clientManager.getClientInfo(client)
       const chatrooms = chatroomManager.getRooms();
       chatrooms.forEach(room => {
         if (room.hasUser(client))
