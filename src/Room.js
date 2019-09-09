@@ -47,12 +47,11 @@ function Room({id, socket, peer, peerId}) {
   }, [])
 
   if (isReady) {
+    deleteSocketListeners()
     socket.on('message', function messageListener(data) {
-      deleteSocketListeners()
       setMessages([...messages, data])
     })
     socket.on('userJoined', function userJoinedListener(data) {
-      deleteSocketListeners()
       setUsers([...users, data.message])
       if (streamState.isStreaming) {
         console.log(activeStream)
@@ -65,7 +64,6 @@ function Room({id, socket, peer, peerId}) {
       let leftUserIndex = copiedUsers.findIndex(x => x.userName === data.message.userName)
       const {peerId} = copiedUsers[leftUserIndex]
       copiedUsers.splice(leftUserIndex, 1);
-      deleteSocketListeners()
       setUsers(copiedUsers)
       deleteRemoteAudio(peerId)
     })
@@ -106,7 +104,6 @@ function Room({id, socket, peer, peerId}) {
           .filter(id => id !== peerId)
           .map(id => peer.call(id, stream))
         activeStream = stream;
-        deleteSocketListeners()
         setStreamState({myCalls: calls, isStreaming: true, error: undefined})
       })
       .catch(err => {
@@ -116,7 +113,6 @@ function Room({id, socket, peer, peerId}) {
 
   function stopAudioStreaming() {
     streamState.myCalls.forEach(call => call.close())
-    deleteSocketListeners()
     setStreamState({myCalls: [], isStreaming: false, error: undefined})
   }
 
