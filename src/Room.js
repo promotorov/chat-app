@@ -16,13 +16,15 @@ function sendMessage(event, socket, roomId) {
   }
 }
 
+let activeStream;
+
 function Room({id, socket, peer, peerId}) {
   const [isLoading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [messages, setMessages] = useState([]);
   const [isReady, setReady] = useState(false);
   const [users, setUsers] = useState([]);
-  const [streamState, setStreamState] = useState({myCalls: [], isStreaming: false});
+  const [streamState, setStreamState] = useState({myCalls: [], isStreaming: false, error});
 
   // Delete listeners before state is updated
   function deleteSocketListeners() {
@@ -52,6 +54,11 @@ function Room({id, socket, peer, peerId}) {
     socket.on('userJoined', function userJoinedListener(data) {
       deleteSocketListeners()
       setUsers([...users, data.message])
+      if (streamState.isStreaming) {
+        console.log(activeStream)
+        const call = peer.call(data.message.peerId, activeStream)
+        setStreamState({...streamState, myCalls: [...streamState.myCalls, call]})
+      }
     })
     socket.on('userLeft', function userLeftListener(data) {
       const copiedUsers = [...users];
@@ -60,8 +67,7 @@ function Room({id, socket, peer, peerId}) {
       copiedUsers.splice(leftUserIndex, 1);
       deleteSocketListeners()
       setUsers(copiedUsers)
-      document.getElementById(`audioHeader${peerId}`).remove()
-      document.getElementById(`audio${peerId}`).remove()
+      deleteRemoteAudio(peerId)
     })
     peer.on('call', function(call) {
       call.answer()
@@ -79,28 +85,39 @@ function Room({id, socket, peer, peerId}) {
         container.appendChild(audioElement)
       })
       call.on('close', function() {
-        document.getElementById(`audioHeader${call.peer}`).remove()
-        document.getElementById(`audio${call.peer}`).remove()
+        deleteRemoteAudio(call.peer)
       })
     })
   }
 
-  function startAudioStreaming() {
-    navigator.getUserMedia({audio: true, video:false}, stream => {
-      const calls = users.map(u => u.peerId)
-        .filter(id => id !== peerId)
-        .map(id => peer.call(id, stream))
-      deleteSocketListeners()
-      setStreamState({myCalls: calls, isStreaming: true})
-    }, (err) => {
-      console.log('Failed to get local stream', err);
-    });
+  function deleteRemoteAudio(id) {
+    const header = document.getElementById(`audioHeader${id}`)
+    const audio = document.getElementById(`audio${id}`)
+    if (header)
+      header.remove()
+    if (audio)
+      audio.remove()
   }
 
-  function stopVideoStreaming() {
+  function startAudioStreaming() {
+    navigator.mediaDevices.getUserMedia({audio: true, video: false})
+      .then(stream => {
+        const calls = users.map(u => u.peerId)
+          .filter(id => id !== peerId)
+          .map(id => peer.call(id, stream))
+        activeStream = stream;
+        deleteSocketListeners()
+        setStreamState({myCalls: calls, isStreaming: true, error: undefined})
+      })
+      .catch(err => {
+        setStreamState({myCalls: [], isStreaming: false, error: err})
+      });
+  }
+
+  function stopAudioStreaming() {
     streamState.myCalls.forEach(call => call.close())
     deleteSocketListeners()
-    setStreamState({myCalls: [], isStreaming: false})
+    setStreamState({myCalls: [], isStreaming: false, error: undefined})
   }
 
   return (
@@ -123,8 +140,9 @@ function Room({id, socket, peer, peerId}) {
         <div>
           <List data={users.map(u => u.userName)}/>
         </div>
+        {streamState.error && <div>{streamState.error}</div>}
         {!streamState.isStreaming &&<Button onClick={startAudioStreaming}>Start audio</Button>}
-        {streamState.isStreaming && <Button onClick={stopVideoStreaming}>Stop audio</Button>}
+        {streamState.isStreaming && <Button onClick={stopAudioStreaming}>Stop audio</Button>}
         <div id={'remoteAudio'}>
         </div>
       </div> }
